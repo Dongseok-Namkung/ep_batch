@@ -1,5 +1,6 @@
 package com.hanwha.hwgi.ep.batch.config;
 
+import javax.annotation.Resource;
 import javax.sql.DataSource;
 
 import org.slf4j.Logger;
@@ -21,9 +22,7 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
 import com.hanwha.hwgi.ep.batch.constants.BatchQuery;
 import com.hanwha.hwgi.ep.batch.listener.JobCompletionNotificationListener;
-import com.hanwha.hwgi.ep.batch.processor.OrgItemProcessor;
 import com.hanwha.hwgi.ep.batch.processor.UserItemProcessor;
-import com.hanwha.hwgi.ep.batch.vo.OrgVO;
 import com.hanwha.hwgi.ep.batch.vo.User;
 
 /**
@@ -52,20 +51,17 @@ public class BatchUserSyncConfig {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
-    @Autowired
-    private DataSource dataSource;
+    @Resource(name = "primaryDataSource")
+    private DataSource primaryDataSource;
+    
+    @Resource(name = "secondaryDataSource")
+    private DataSource secondaryDataSource;
     
     @Bean
     ItemReader<User> userItemReader() {
         JdbcCursorItemReader<User> databaseReader = new JdbcCursorItemReader<>();
-        String QUERY_FIND_STUDENTS = 
-        		                 "SELECT " + 
-                             "stfno, " + 
-        		                     "nm, " + 
-        		                     "orgcd " + 
-        		                 "FROM SAM_STF "; 
-
-        databaseReader.setDataSource(dataSource);
+        
+        databaseReader.setDataSource(primaryDataSource);
         databaseReader.setSql(BatchQuery.QUERY_SEL_USER);
         log.info("userItemReader 수행:",BatchQuery.QUERY_SEL_USER);
         databaseReader.setRowMapper(new BeanPropertyRowMapper<>(User.class));
@@ -86,7 +82,7 @@ public class BatchUserSyncConfig {
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
         writer.setSql(BatchQuery.QUERY_PUT_USER);
         log.info("userItemWriter 수행:"+BatchQuery.QUERY_PUT_USER);
-        writer.setDataSource(dataSource);
+        writer.setDataSource(secondaryDataSource);
         return writer;
     }
     
@@ -110,52 +106,4 @@ public class BatchUserSyncConfig {
                 .writer(userItemWriter())
                 .build();
     }
-    
-//    @Bean
-//    ItemReader<OrgVO> orgItemReader() {
-//        JdbcCursorItemReader<OrgVO> databaseReader = new JdbcCursorItemReader<>();
-//
-//        databaseReader.setDataSource(dataSource);
-//        databaseReader.setSql(BatchQuery.QUERY_SEL_ORG);
-//        databaseReader.setRowMapper(new BeanPropertyRowMapper<>(OrgVO.class));
-//        log.info("orgItemReader 수행:",BatchQuery.QUERY_SEL_ORG);
-//        return databaseReader;
-//    }
-//
-//    @Bean
-//    public OrgItemProcessor orgSyncProcessor() {
-//        return new OrgItemProcessor();
-//    }
-//
-//    @Bean
-//    public JdbcBatchItemWriter<OrgVO> orgItemWriter() {
-//    	
-//        JdbcBatchItemWriter<OrgVO> writer = new JdbcBatchItemWriter<OrgVO>();
-//        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<OrgVO>());
-//        writer.setSql(BatchQuery.QUERY_PUT_ORG);
-//        writer.setDataSource(dataSource);
-//        
-//        log.info("orgItemWriter 수행:",BatchQuery.QUERY_SEL_ORG);
-//        return writer;
-//    }
-//    
-//    @Bean
-//    public Job importOrgJob(JobCompletionNotificationListener listener) {
-//        return jobBuilderFactory.get("importOrgJob")
-//                .incrementer(new RunIdIncrementer())
-//                .listener(listener)
-//                .flow(SynchronizeOrgStep())
-//                .end()
-//                .build();
-//    }
-//
-//    @Bean
-//    public Step SynchronizeOrgStep() {
-//        return stepBuilderFactory.get("orgSyncStep")
-//                .<OrgVO, OrgVO> chunk(10)
-//                .reader(orgItemReader())
-//                .processor(orgSyncProcessor())
-//                .writer(orgItemWriter())
-//                .build();
-//    }
 }
