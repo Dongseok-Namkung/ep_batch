@@ -1,1 +1,16 @@
 https://github.com/spring-projects/spring-batch/tree/master/spring-batch-core/src/main/resources/org/springframework/batch/core
+
+
+-- 멀티데이터소스
+https://www.ccampo.me/java/spring/2016/02/13/multi-datasource-spring-boot.html
+spring.datasource.initialize=false
+# Primary DataSource configuration
+datasource.primary.url=
+datasource.primary.username=
+datasource.primary.password=
+# Any of the other Spring supported properties below...
+
+# Secondary DataSource configuration
+datasource.secondary.url=
+datasource.secondary.username=
+datasource.secondary.password=

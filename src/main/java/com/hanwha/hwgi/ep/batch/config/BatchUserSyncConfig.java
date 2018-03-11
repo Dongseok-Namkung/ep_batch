@@ -2,6 +2,8 @@ package com.hanwha.hwgi.ep.batch.config;
 
 import javax.sql.DataSource;
 
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -19,7 +21,9 @@ import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
 import com.hanwha.hwgi.ep.batch.constants.BatchQuery;
 import com.hanwha.hwgi.ep.batch.listener.JobCompletionNotificationListener;
+import com.hanwha.hwgi.ep.batch.processor.OrgItemProcessor;
 import com.hanwha.hwgi.ep.batch.processor.UserItemProcessor;
+import com.hanwha.hwgi.ep.batch.vo.OrgVO;
 import com.hanwha.hwgi.ep.batch.vo.User;
 
 /**
@@ -41,7 +45,7 @@ import com.hanwha.hwgi.ep.batch.vo.User;
 @Configuration
 @EnableBatchProcessing
 public class BatchUserSyncConfig {
-
+	private static final Logger log = LoggerFactory.getLogger(BatchUserSyncConfig.class);
     @Autowired
     private JobBuilderFactory jobBuilderFactory;
 
@@ -51,80 +55,42 @@ public class BatchUserSyncConfig {
     @Autowired
     private DataSource dataSource;
     
-	/**
-	 * 
-	 * @Method Name  : SAM_STF에서 변경데이터 가져오기
-	 * @Method 설명 : SAM_STF에서 변경데이터를 가지고 온다. 
-	 * @Method override : 
-	 * @작성자   : nkds
-	 * @작성일   : 2018. 3. 8. 
-	 * @변경이력  :
-	 * @param 
-	 * @return ItemReader
-	 * @throws Exception
-	 */
     @Bean
     ItemReader<User> userItemReader() {
         JdbcCursorItemReader<User> databaseReader = new JdbcCursorItemReader<>();
+        String QUERY_FIND_STUDENTS = 
+        		                 "SELECT " + 
+                             "stfno, " + 
+        		                     "nm, " + 
+        		                     "orgcd " + 
+        		                 "FROM SAM_STF "; 
 
         databaseReader.setDataSource(dataSource);
         databaseReader.setSql(BatchQuery.QUERY_SEL_USER);
+        log.info("userItemReader 수행:",BatchQuery.QUERY_SEL_USER);
         databaseReader.setRowMapper(new BeanPropertyRowMapper<>(User.class));
  
         return databaseReader;
+        
     }
 
-    /**
-	 * 
-	 * @Method Name  : Reader에서 읽어온 User 객체로 처리할 메소드 정의 (UserItemProcessor)
-	 * @Method 설명 : Reader에서 읽어온 User 객체가 넘어간다.
-	 * @Method override : 
-	 * @작성자   : nkds
-	 * @작성일   : 2018. 3. 8. 
-	 * @변경이력  :
-	 * @param 
-	 * @return UserItemProcessor
-	 * @throws Exception
-	 */
     @Bean
-    public UserItemProcessor processor() {
+    public UserItemProcessor userSyncProcessor() {
         return new UserItemProcessor();
     }
 
-    /**
-	 * 
-	 * @Method Name  : UserItemProcessor 에서처리한 User 객체를 DB에 저장
-	 * @Method 설명 : UserItemProcessor 에서처리한 User 객체를 DB에 저장한다.
-	 * @Method override : 
-	 * @작성자   : nkds
-	 * @작성일   : 2018. 3. 8. 
-	 * @변경이력  :
-	 * @param 
-	 * @return UserItemProcessor
-	 * @throws Exception
-	 */
     @Bean
     public JdbcBatchItemWriter<User> userItemWriter() {
     	
         JdbcBatchItemWriter<User> writer = new JdbcBatchItemWriter<User>();
         writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
         writer.setSql(BatchQuery.QUERY_PUT_USER);
+        log.info("userItemWriter 수행:"+BatchQuery.QUERY_PUT_USER);
         writer.setDataSource(dataSource);
         return writer;
     }
     
-    /**
-	 * 
-	 * @Method Name  : SAM_STF User 동기화 Job 설정
-	 * @Method 설명 : SAM_STF User 동기화 Job 설정
-	 * @Method override : 
-	 * @작성자   : nkds
-	 * @작성일   : 2018. 3. 8. 
-	 * @변경이력  :
-	 * @param 
-	 * @return Job
-	 * @throws Exception
-	 */
+
     @Bean
     public Job importUserJob(JobCompletionNotificationListener listener) {
         return jobBuilderFactory.get("importUserJob")
@@ -134,26 +100,62 @@ public class BatchUserSyncConfig {
                 .end()
                 .build();
     }
-
-    /**
-	 * 
-	 * @Method Name  : SAM_STF User 동기화 Step 설정
-	 * @Method 설명 : SAM_STF User 동기화 Step 설정
-	 * @Method override : 
-	 * @작성자   : nkds
-	 * @작성일   : 2018. 3. 8. 
-	 * @변경이력  :
-	 * @param 
-	 * @return Step
-	 * @throws Exception
-	 */
+    
     @Bean
     public Step SynchronizeUserStep() {
-        return stepBuilderFactory.get("step1")
+        return stepBuilderFactory.get("userSyncStep")
                 .<User, User> chunk(10)
                 .reader(userItemReader())
-                .processor(processor())
+                .processor(userSyncProcessor())
                 .writer(userItemWriter())
                 .build();
     }
+    
+//    @Bean
+//    ItemReader<OrgVO> orgItemReader() {
+//        JdbcCursorItemReader<OrgVO> databaseReader = new JdbcCursorItemReader<>();
+//
+//        databaseReader.setDataSource(dataSource);
+//        databaseReader.setSql(BatchQuery.QUERY_SEL_ORG);
+//        databaseReader.setRowMapper(new BeanPropertyRowMapper<>(OrgVO.class));
+//        log.info("orgItemReader 수행:",BatchQuery.QUERY_SEL_ORG);
+//        return databaseReader;
+//    }
+//
+//    @Bean
+//    public OrgItemProcessor orgSyncProcessor() {
+//        return new OrgItemProcessor();
+//    }
+//
+//    @Bean
+//    public JdbcBatchItemWriter<OrgVO> orgItemWriter() {
+//    	
+//        JdbcBatchItemWriter<OrgVO> writer = new JdbcBatchItemWriter<OrgVO>();
+//        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<OrgVO>());
+//        writer.setSql(BatchQuery.QUERY_PUT_ORG);
+//        writer.setDataSource(dataSource);
+//        
+//        log.info("orgItemWriter 수행:",BatchQuery.QUERY_SEL_ORG);
+//        return writer;
+//    }
+//    
+//    @Bean
+//    public Job importOrgJob(JobCompletionNotificationListener listener) {
+//        return jobBuilderFactory.get("importOrgJob")
+//                .incrementer(new RunIdIncrementer())
+//                .listener(listener)
+//                .flow(SynchronizeOrgStep())
+//                .end()
+//                .build();
+//    }
+//
+//    @Bean
+//    public Step SynchronizeOrgStep() {
+//        return stepBuilderFactory.get("orgSyncStep")
+//                .<OrgVO, OrgVO> chunk(10)
+//                .reader(orgItemReader())
+//                .processor(orgSyncProcessor())
+//                .writer(orgItemWriter())
+//                .build();
+//    }
 }
