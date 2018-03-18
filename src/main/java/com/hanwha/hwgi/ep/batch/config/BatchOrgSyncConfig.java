@@ -13,15 +13,15 @@ import org.springframework.batch.core.configuration.annotation.StepBuilderFactor
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
 import org.springframework.batch.item.ItemWriter;
-import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
+import com.hanwha.hwgi.ep.batch.job.processor.OrgItemProcessor;
+import com.hanwha.hwgi.ep.batch.job.reader.OrgItemReader;
+import com.hanwha.hwgi.ep.batch.job.writer.OrgItemWriter;
 import com.hanwha.hwgi.ep.batch.listener.JobCompletionNotificationListener;
-import com.hanwha.hwgi.ep.batch.processor.OrgItemProcessor;
 import com.hanwha.hwgi.ep.batch.vo.OrgVO;
-import com.hanwha.hwgi.ep.batch.vo.UserVO;
 
 /**
  * 
@@ -49,9 +49,6 @@ public class BatchOrgSyncConfig {
 
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
-
-//    @Autowired
-//    private DataSource dataSource;
     
     @Resource(name = "sqlSessionFactoryPrimary")
     private SqlSessionFactory sqlSessionFactoryPrimary;
@@ -73,16 +70,7 @@ public class BatchOrgSyncConfig {
 	 */
     @Bean
     ItemReader<OrgVO> orgItemReader() {
-//        JdbcCursorItemReader<OrgVO> databaseReader = new JdbcCursorItemReader<>();
-
-//        databaseReader.setDataSource(dataSource);
-//        databaseReader.setSql(BatchQuery.QUERY_SEL_ORG);
-//        databaseReader.setRowMapper(new BeanPropertyRowMapper<>(OrgVO.class));
-        
-        MyBatisCursorItemReader<OrgVO> reader = new MyBatisCursorItemReader<OrgVO>();
-        reader.setSqlSessionFactory(sqlSessionFactoryPrimary);
-        reader.setQueryId("selectOrg");
-        return reader;
+    	return new OrgItemReader(sqlSessionFactorySecondary).getBatchItemReader();
     }
 
     @Bean
@@ -92,17 +80,7 @@ public class BatchOrgSyncConfig {
 
     @Bean
     public ItemWriter<OrgVO> orgItemWriter() {
-    	
-//        JdbcBatchItemWriter<OrgVO> writer = new JdbcBatchItemWriter<OrgVO>();
-//        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<OrgVO>());
-//        writer.setSql(BatchQuery.QUERY_PUT_ORG);
-//        writer.setDataSource(dataSource);
-    	
-    	MyBatisBatchItemWriter<OrgVO> writer = new MyBatisBatchItemWriter<OrgVO>();
-        writer.setSqlSessionFactory(sqlSessionFactorySecondary);
-        writer.setStatementId("insertOrg");
-        
-        return writer;
+        return new OrgItemWriter(sqlSessionFactoryPrimary).getBatchItemWriter();
     }
     
     @Bean

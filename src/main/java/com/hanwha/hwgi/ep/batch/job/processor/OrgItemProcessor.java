@@ -1,4 +1,4 @@
-package com.hanwha.hwgi.ep.batch.processor;
+package com.hanwha.hwgi.ep.batch.job.processor;
 
 
 import org.slf4j.Logger;
