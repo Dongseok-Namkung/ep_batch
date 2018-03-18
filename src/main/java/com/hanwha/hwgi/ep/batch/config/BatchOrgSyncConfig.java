@@ -3,8 +3,6 @@ package com.hanwha.hwgi.ep.batch.config;
 import javax.annotation.Resource;
 
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.batch.MyBatisBatchItemWriter;
-import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;

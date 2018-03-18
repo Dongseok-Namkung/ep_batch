@@ -3,7 +3,6 @@ package com.hanwha.hwgi.ep.batch.config;
 import javax.annotation.Resource;
 
 import org.apache.ibatis.session.SqlSessionFactory;
-import org.mybatis.spring.batch.MyBatisBatchItemWriter;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
