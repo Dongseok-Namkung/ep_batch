@@ -1,7 +1,10 @@
 package com.hanwha.hwgi.ep.batch.config;
 
-import javax.sql.DataSource;
+import javax.annotation.Resource;
 
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.batch.MyBatisBatchItemWriter;
+import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.springframework.batch.core.Job;
 import org.springframework.batch.core.Step;
 import org.springframework.batch.core.configuration.annotation.EnableBatchProcessing;
@@ -9,18 +12,16 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.batch.item.database.JdbcCursorItemReader;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
-import com.hanwha.hwgi.ep.batch.constants.BatchQuery;
 import com.hanwha.hwgi.ep.batch.listener.JobCompletionNotificationListener;
 import com.hanwha.hwgi.ep.batch.processor.OrgItemProcessor;
 import com.hanwha.hwgi.ep.batch.vo.OrgVO;
+import com.hanwha.hwgi.ep.batch.vo.UserVO;
 
 /**
  * 
@@ -49,8 +50,14 @@ public class BatchOrgSyncConfig {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
-    @Autowired
-    private DataSource dataSource;
+//    @Autowired
+//    private DataSource dataSource;
+    
+    @Resource(name = "sqlSessionFactoryPrimary")
+    private SqlSessionFactory sqlSessionFactoryPrimary;
+    
+    @Resource(name = "sqlSessionFactorySecondary")
+    private SqlSessionFactory sqlSessionFactorySecondary;
     
 	/**
 	 * 
@@ -66,12 +73,16 @@ public class BatchOrgSyncConfig {
 	 */
     @Bean
     ItemReader<OrgVO> orgItemReader() {
-        JdbcCursorItemReader<OrgVO> databaseReader = new JdbcCursorItemReader<>();
+//        JdbcCursorItemReader<OrgVO> databaseReader = new JdbcCursorItemReader<>();
 
-        databaseReader.setDataSource(dataSource);
-        databaseReader.setSql(BatchQuery.QUERY_SEL_ORG);
-        databaseReader.setRowMapper(new BeanPropertyRowMapper<>(OrgVO.class));
-        return databaseReader;
+//        databaseReader.setDataSource(dataSource);
+//        databaseReader.setSql(BatchQuery.QUERY_SEL_ORG);
+//        databaseReader.setRowMapper(new BeanPropertyRowMapper<>(OrgVO.class));
+        
+        MyBatisCursorItemReader<OrgVO> reader = new MyBatisCursorItemReader<OrgVO>();
+        reader.setSqlSessionFactory(sqlSessionFactoryPrimary);
+        reader.setQueryId("selectOrg");
+        return reader;
     }
 
     @Bean
@@ -80,12 +91,16 @@ public class BatchOrgSyncConfig {
     }
 
     @Bean
-    public JdbcBatchItemWriter<OrgVO> orgItemWriter() {
+    public ItemWriter<OrgVO> orgItemWriter() {
     	
-        JdbcBatchItemWriter<OrgVO> writer = new JdbcBatchItemWriter<OrgVO>();
-        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<OrgVO>());
-        writer.setSql(BatchQuery.QUERY_PUT_ORG);
-        writer.setDataSource(dataSource);
+//        JdbcBatchItemWriter<OrgVO> writer = new JdbcBatchItemWriter<OrgVO>();
+//        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<OrgVO>());
+//        writer.setSql(BatchQuery.QUERY_PUT_ORG);
+//        writer.setDataSource(dataSource);
+    	
+    	MyBatisBatchItemWriter<OrgVO> writer = new MyBatisBatchItemWriter<OrgVO>();
+        writer.setSqlSessionFactory(sqlSessionFactorySecondary);
+        writer.setStatementId("insertOrg");
         
         return writer;
     }

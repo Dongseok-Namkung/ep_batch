@@ -14,7 +14,7 @@ import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.RowMapper;
 import org.springframework.stereotype.Component;
 
-import com.hanwha.hwgi.ep.batch.vo.User;
+import com.hanwha.hwgi.ep.batch.vo.UserVO;
 
 @Component
 public class JobCompletionNotificationListener extends JobExecutionListenerSupport {
@@ -47,14 +47,14 @@ public class JobCompletionNotificationListener extends JobExecutionListenerSuppo
 		if(jobExecution.getStatus() == BatchStatus.COMPLETED) {
 			log.info("!!! JOB FINISHED! Time to verify the results");
 
-			List<User> results = jdbcTemplate.query("SELECT stfno, nm FROM sam_stf", new RowMapper<User>() {
+			List<UserVO> results = jdbcTemplate.query("SELECT stfno, nm FROM sam_stf", new RowMapper<UserVO>() {
 				@Override
-				public User mapRow(ResultSet rs, int row) throws SQLException {
-					return new User(rs.getString(1), rs.getString(2));
+				public UserVO mapRow(ResultSet rs, int row) throws SQLException {
+					return new UserVO(rs.getString(1), rs.getString(2));
 				}
 			});
 
-			for (User person : results) {
+			for (UserVO person : results) {
 				log.info("Found <" + person + "> in the database.");
 			}
 

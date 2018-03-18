@@ -1,8 +1,10 @@
 package com.hanwha.hwgi.ep.batch.config;
 
 import javax.annotation.Resource;
-import javax.sql.DataSource;
 
+import org.apache.ibatis.session.SqlSessionFactory;
+import org.mybatis.spring.batch.MyBatisBatchItemWriter;
+import org.mybatis.spring.batch.MyBatisCursorItemReader;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.batch.core.Job;
@@ -12,18 +14,14 @@ import org.springframework.batch.core.configuration.annotation.JobBuilderFactory
 import org.springframework.batch.core.configuration.annotation.StepBuilderFactory;
 import org.springframework.batch.core.launch.support.RunIdIncrementer;
 import org.springframework.batch.item.ItemReader;
-import org.springframework.batch.item.database.BeanPropertyItemSqlParameterSourceProvider;
-import org.springframework.batch.item.database.JdbcBatchItemWriter;
-import org.springframework.batch.item.database.JdbcCursorItemReader;
+import org.springframework.batch.item.ItemWriter;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
-import org.springframework.jdbc.core.BeanPropertyRowMapper;
 
-import com.hanwha.hwgi.ep.batch.constants.BatchQuery;
 import com.hanwha.hwgi.ep.batch.listener.JobCompletionNotificationListener;
 import com.hanwha.hwgi.ep.batch.processor.UserItemProcessor;
-import com.hanwha.hwgi.ep.batch.vo.User;
+import com.hanwha.hwgi.ep.batch.vo.UserVO;
 
 /**
  * 
@@ -51,22 +49,32 @@ public class BatchUserSyncConfig {
     @Autowired
     private StepBuilderFactory stepBuilderFactory;
 
-    @Resource(name = "primaryDataSource")
-    private DataSource primaryDataSource;
+//    @Resource(name = "primaryDataSource")
+//    private DataSource primaryDataSource;
+//    
+//    @Resource(name = "secondaryDataSource")
+//    private DataSource secondaryDataSource;
     
-    @Resource(name = "secondaryDataSource")
-    private DataSource secondaryDataSource;
+    @Resource(name = "sqlSessionFactoryPrimary")
+    private SqlSessionFactory sqlSessionFactoryPrimary;
+    
+    @Resource(name = "sqlSessionFactorySecondary")
+    private SqlSessionFactory sqlSessionFactorySecondary;
     
     @Bean
-    ItemReader<User> userItemReader() {
-        JdbcCursorItemReader<User> databaseReader = new JdbcCursorItemReader<>();
-        
-        databaseReader.setDataSource(primaryDataSource);
-        databaseReader.setSql(BatchQuery.QUERY_SEL_USER);
-        log.info("userItemReader 수행:",BatchQuery.QUERY_SEL_USER);
-        databaseReader.setRowMapper(new BeanPropertyRowMapper<>(User.class));
+    ItemReader<UserVO> userItemReader() {
+//        JdbcCursorItemReader<UserVO> databaseReader = new JdbcCursorItemReader<>();
+//        databaseReader.setDataSource(primaryDataSource);
+//        databaseReader.setSql(BatchQuery.QUERY_SEL_USER);
+//        log.info("userItemReader 수행:",BatchQuery.QUERY_SEL_USER);
+//        databaseReader.setRowMapper(new BeanPropertyRowMapper<>(UserVO.class));
  
-        return databaseReader;
+        MyBatisCursorItemReader<UserVO> reader = new MyBatisCursorItemReader<>();
+        reader.setSqlSessionFactory(sqlSessionFactoryPrimary);
+        reader.setQueryId("selectUser");
+
+        
+        return reader;
         
     }
 
@@ -76,13 +84,18 @@ public class BatchUserSyncConfig {
     }
 
     @Bean
-    public JdbcBatchItemWriter<User> userItemWriter() {
+    public ItemWriter<UserVO> userItemWriter() {
     	
-        JdbcBatchItemWriter<User> writer = new JdbcBatchItemWriter<User>();
-        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<User>());
-        writer.setSql(BatchQuery.QUERY_PUT_USER);
-        log.info("userItemWriter 수행:"+BatchQuery.QUERY_PUT_USER);
-        writer.setDataSource(secondaryDataSource);
+//        JdbcBatchItemWriter<UserVO> writer = new JdbcBatchItemWriter<UserVO>();
+//        writer.setItemSqlParameterSourceProvider(new BeanPropertyItemSqlParameterSourceProvider<UserVO>());
+//        writer.setSql(BatchQuery.QUERY_PUT_USER);
+//        log.info("userItemWriter 수행:"+BatchQuery.QUERY_PUT_USER);
+//        writer.setDataSource(secondaryDataSource);
+    	
+    	MyBatisBatchItemWriter<UserVO> writer = new MyBatisBatchItemWriter<UserVO>();
+        writer.setSqlSessionFactory(sqlSessionFactorySecondary);
+        writer.setStatementId("insertUser");
+
         return writer;
     }
     
@@ -100,7 +113,7 @@ public class BatchUserSyncConfig {
     @Bean
     public Step SynchronizeUserStep() {
         return stepBuilderFactory.get("userSyncStep")
-                .<User, User> chunk(10)
+                .<UserVO, UserVO> chunk(10)
                 .reader(userItemReader())
                 .processor(userSyncProcessor())
                 .writer(userItemWriter())
