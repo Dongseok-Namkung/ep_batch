@@ -20,8 +20,7 @@ import org.springframework.transaction.annotation.EnableTransactionManagement;
 @Configuration
 @Lazy
 @EnableTransactionManagement
-@MapperScan(basePackages = {"com.hanwha.hwgi.ep.batch.processor"})
-public class DataSourceConfiguration {
+public class DatabaseConfiguration {
 
 	@Autowired
     private ApplicationContext applicationContext;
@@ -51,9 +50,7 @@ public class DataSourceConfiguration {
     public SqlSessionFactory sqlSessionFactoryPrimary() throws Exception {
         SqlSessionFactoryBean sessionFactoryBean = new SqlSessionFactoryBean();
         sessionFactoryBean.setDataSource(primaryDataSource());
-//        sessionFactoryBean.setTypeAliasesPackage("com.hanwha.hwgi.ep.batch.processor");
         sessionFactoryBean.setConfigLocation(applicationContext.getResource("classpath:mybatis/mybatis-config.xml"));
-//        sessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:com/hanwha/hwgi/ep/batch/processor/**/*.xml"));
         return sessionFactoryBean.getObject();
     }
     
@@ -61,9 +58,7 @@ public class DataSourceConfiguration {
     public SqlSessionFactory sqlSessionFactorySecondary() throws Exception {
         SqlSessionFactoryBean sessionFactoryBean = new SqlSessionFactoryBean();
         sessionFactoryBean.setDataSource(secondaryDataSource());
-//        sessionFactoryBean.setTypeAliasesPackage("com.hanwha.hwgi.ep.batch.processor");
         sessionFactoryBean.setConfigLocation(applicationContext.getResource("classpath:mybatis/mybatis-config.xml"));
-//        sessionFactoryBean.setMapperLocations(applicationContext.getResources("classpath:com/hanwha/hwgi/ep/batch/processor/**/*.xml"));
         return sessionFactoryBean.getObject();
     }
 }

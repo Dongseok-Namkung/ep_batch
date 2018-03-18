@@ -7,7 +7,6 @@
         <package name="com.hanwha.hwgi.ep.batch.vo"/> 
     </typeAliases> 
     <mappers> 
-<!--         <mapper resource="sample/mybatis/mapper/CityMapper.xml"/>  -->
         <mapper resource="com/hanwha/hwgi/ep/batch/mapper/userMapper.xml"/>
         <mapper resource="com/hanwha/hwgi/ep/batch/mapper/orgMapper.xml"/> 
     </mappers> 
