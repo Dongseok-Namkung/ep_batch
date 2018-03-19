@@ -1,0 +1,32 @@
+/*
+* gradle doBatch -Pparam=--spring.batch.job.names=importUserJob,importOrgJob
+*/
+
+apply plugin:'application'
+
+
+repositories {
+	flatDir { dirs 'libs' } 
+}
+dependencies {
+	compile fileTree(dir: 'lib', include: '*.jar')
+		
+}
+
+
+mainClassName = 'com.hanwha.hwgi.ep.batch.EPBatchApplication'
+
+sourceCompatibility = 1.8
+targetCompatibility = 1.8
+
+compileJava.options.encoding = "UTF-8"
+
+/*
+task doBatch(type: JavaExec) {
+
+  classpath sourceSets.main.runtimeClasspath
+  main = "com.hanwha.hwgi.ep.batch.EPBatchApplication"
+//  args "--spring.batch.job.names=importUserJob,importOrgJob"
+	args(param)
+}
+*/
