@@ -1,4 +1,4 @@
-package com.nam.batch;
+package com.hanwha.hwgi.ep.batch;
 
 import org.junit.Test;
 import org.junit.runner.RunWith;
