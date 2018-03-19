@@ -5,7 +5,6 @@
 
 apply plugin:'java'
 
-
 repositories {
 	flatDir { dirs 'libs' } 
 }
@@ -14,20 +13,22 @@ dependencies {
 		
 }
 
-
-
 sourceCompatibility = 1.8
 targetCompatibility = 1.8
 
 compileJava.options.encoding = "UTF-8"
-
+def getDate() {
+	new Date().format('yyyyMMddHHmmss')
+}
 jar {
 	doFirst{
 		manifest {
-	        attributes("Implementation-Title": project.name,
+	        attributes(
+	            "Build-Date": getDate(),
+	        	"Implementation-Title": project.name,
 	            "Implementation-Version": "1.0",
 	            "Main-Class": "com.hanwha.hwgi.ep.batch.EPBatchApplication",
-	            'Class-Path': configurations.compile.collect{it.toURI().toString()}.join(' ')
+	            "Class-Path": configurations.compile.collect{it.toURI().toString()}.join(' ')
 	        )
 	    }
 	}
