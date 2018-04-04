@@ -4,11 +4,13 @@
         PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd"> 
         
 <mapper namespace="ep.batch.mapper.selectUser"> 
-    <select id="selectUser" resultType="UserVO"> 
-        SELECT STFNO, NM, ORGCD FROM SAM_STF
+    <select id="userInsertReader_selectUser" resultType="User"> 
+	        SELECT * 
+			  FROM USER
+			 WHERE 1=1 		
     </select>
     
-    <insert id="insertUser" parameterType="UserVO"> 
-        INSERT INTO sam_stf_result (stfno, nm, orgcd) VALUES (#{stfno}, #{nm}, '2222222')
+    <insert id="userInsertWriter_insertUser" parameterType="User">
+    	INSERT INTO USER VALUES (#{usrId}, #{usrnm}, #{orncd})
     </insert>
 </mapper> 

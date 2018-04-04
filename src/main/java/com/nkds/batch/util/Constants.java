@@ -1,0 +1,8 @@
+package com.nkds.batch.util;
+
+public enum Constants {
+	//JOB 설정관련
+	JOB_USER_INSERT, STEP_USER_INSERT, JOB_USER_DELETE, STEP_USER_DELETE
+	,JOB_DEPT_INSERT, STEP_DEPT_INSERT, JOB_DEPT_DELETE, STEP_DEPT_DELETE
+}
+

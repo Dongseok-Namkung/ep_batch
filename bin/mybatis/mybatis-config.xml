@@ -3,11 +3,18 @@
 <!DOCTYPE configuration 
         PUBLIC "-//mybatis.org//DTD Config 3.0//EN" "http://mybatis.org/dtd/mybatis-3-config.dtd"> 
 <configuration> 
+    <settings>
+    	<setting name="defaultStatementTimeout" value="30"/>
+    	<setting name="mapUnderscoreToCamelCase" value="true"/>
+    	<setting name="useColumnLabel" value="true"/>
+    </settings> 
     <typeAliases> 
-        <package name="com.hanwha.hwgi.ep.batch.vo"/> 
+        <package name="com.hanwha.hwgi.ep.batch.model"/> 
     </typeAliases> 
     <mappers> 
         <mapper resource="com/hanwha/hwgi/ep/batch/mapper/userMapper.xml"/>
-        <mapper resource="com/hanwha/hwgi/ep/batch/mapper/orgMapper.xml"/> 
-    </mappers> 
+        <mapper resource="com/hanwha/hwgi/ep/batch/mapper/deptMapper.xml"/> 
+        <mapper resource="com/hanwha/hwgi/ep/batch/mapper/batchTabMapper.xml"/> 
+    </mappers>
+    
 </configuration> 
